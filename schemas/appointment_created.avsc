@@ -1,0 +1,43 @@
+{
+  "type": "record",
+  "name": "AppointmentCreated",
+  "namespace": "health.events",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string"
+    },
+    {
+      "name": "occurred_at",
+      "type": "string"
+    },
+    {
+      "name": "appointment_id",
+      "type": "string"
+    },
+    {
+      "name": "patient_id",
+      "type": "string"
+    },
+    {
+      "name": "doctor_id",
+      "type": "string"
+    },
+    {
+      "name": "status",
+      "type": {
+        "type": "enum",
+        "name": "ApptStatus",
+        "symbols": [
+          "scheduled",
+          "completed",
+          "canceled"
+        ]
+      }
+    },
+    {
+      "name": "scheduled_at",
+      "type": "string"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "type": "record",
+  "name": "AppointmentCanceled",
+  "namespace": "health.events",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string"
+    },
+    {
+      "name": "occurred_at",
+      "type": "string"
+    },
+    {
+      "name": "appointment_id",
+      "type": "string"
+    },
+    {
+      "name": "reason",
+      "type": "string"
+    }
+  ]
+}

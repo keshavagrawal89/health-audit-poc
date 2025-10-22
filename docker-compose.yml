@@ -1,0 +1,76 @@
+version: "3.9"
+services:
+  health-postgres:
+    image: postgres:16
+    container_name: health-audit-postgres
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: health
+    ports: ["15432:5432"]
+    volumes:
+      - health_postgres_data:/var/lib/postgresql/data
+      - ./db:/docker-entrypoint-initdb.d
+
+  health-zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: health-audit-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    volumes:
+      - health_zookeeper_data:/var/lib/zookeeper/data
+      - health_zookeeper_logs:/var/lib/zookeeper/log
+
+  health-kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: health-audit-kafka
+    depends_on: [health-zookeeper]
+    ports: ["19092:19092"]
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: health-zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://health-kafka:9092,PLAINTEXT_HOST://localhost:19092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:19092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+      - health_kafka_data:/var/lib/kafka/data
+
+  health-schema-registry:
+    image: confluentinc/cp-schema-registry:7.6.1
+    container_name: health-audit-schema-registry
+    depends_on: [health-kafka]
+    ports: ["18081:8081"]
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://health-kafka:9092
+      SCHEMA_REGISTRY_HOST_NAME: health-schema-registry
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+
+  health-redis:
+    image: redis:7
+    container_name: health-audit-redis
+    ports: ["16379:6379"]
+    volumes:
+      - health_redis_data:/data
+
+  health-clickhouse:
+    image: clickhouse/clickhouse-server:24.6
+    container_name: health-audit-clickhouse
+    ports: ["18123:8123", "19000:9000"]
+    volumes:
+      - health_clickhouse_data:/var/lib/clickhouse
+
+volumes:
+  health_postgres_data:
+    name: health-audit-postgres-data
+  health_zookeeper_data:
+    name: health-audit-zookeeper-data
+  health_zookeeper_logs:
+    name: health-audit-zookeeper-logs
+  health_kafka_data:
+    name: health-audit-kafka-data
+  health_redis_data:
+    name: health-audit-redis-data
+  health_clickhouse_data:
+    name: health-audit-clickhouse-data
